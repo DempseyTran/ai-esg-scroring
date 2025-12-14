@@ -5,6 +5,7 @@ import BankAccountCard from "../components/BankAccountCard.jsx";
 import AccountSuggestionCard from "../components/AccountSuggestionCard.jsx";
 import GoalFormModal from "../components/GoalFormModal.jsx";
 import TransferModal from "../components/TransferModal.jsx";
+import ConvertESGModal from "../components/ConvertESGModal.jsx";
 import LoadingScreen from "../components/LoadingScreen.jsx";
 import { useNotification } from "../context/NotificationContext.jsx";
 import { useRefresh } from "../context/RefreshContext.jsx";
@@ -21,6 +22,8 @@ const BankAccounts = () => {
   const [recipients, setRecipients] = useState([]);
   const [transferAccount, setTransferAccount] = useState(null);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
+  const [convertESGAccount, setConvertESGAccount] = useState(null);
+  const [convertESGModalOpen, setConvertESGModalOpen] = useState(false);
   const { notify } = useNotification();
   const { bumpTransactions } = useRefresh();
 
@@ -50,9 +53,14 @@ const BankAccounts = () => {
     const loadRecipients = async () => {
       try {
         const data = await bankApi.getRecipients();
-        setRecipients(data || []);
+        console.log("Recipients data received:", data); // Debug log
+        const recipientsList = Array.isArray(data) ? data : [];
+        console.log("Recipients list:", recipientsList); // Debug log
+        setRecipients(recipientsList);
       } catch (error) {
         console.error("Không thể tải danh sách người nhận", error);
+        console.error("Error details:", error.response?.data); // Debug log
+        setRecipients([]);
       }
     };
     loadRecipients();
@@ -175,28 +183,33 @@ const BankAccounts = () => {
 
   const handleTransfer = async (payload) => {
     try {
-      const result = await transactionsApi.transfer(payload);
+      // Gọi API ESG scoring thay vì transfer thông thường
+      const result = await transactionsApi.scoreESG(payload);
+
       // Đóng modal trước để UX tốt hơn
       setTransferModalOpen(false);
       setTransferAccount(null);
-      
+
       // Refresh dữ liệu và trigger reload transactions
       await Promise.all([
         refreshAccounts(),
         bankApi.getRecipients().then(setRecipients),
       ]);
-      
+
       // Bump transactions version để trigger reload ở Transactions page
       bumpTransactions();
-      
+
+      // Hiển thị thông báo với điểm ESG
       notify({
         type: "success",
         title: "Chuyển tiền thành công",
         message: `Đã chuyển ${Intl.NumberFormat("vi-VN").format(
           payload.amount
-        )} VND tới ${result.targetAccount.bankName} • ${
-          result.targetAccount.accountNumber
-        }. Giao dịch đã được ghi nhận.`,
+        )} VND. ${result.message} (Hạng ${
+          result.esgGrade
+        }, Điểm ESG: ${result.esgScore.toFixed(
+          2
+        )}). Điểm ESG hiện tại: ${result.account.esgPoint.toFixed(2)}.`,
       });
     } catch (error) {
       console.error("Chuyển tiền thất bại", error);
@@ -207,6 +220,45 @@ const BankAccounts = () => {
           error.response?.data?.message ||
           error.response?.data?.errors?.[0]?.msg ||
           "Không thể thực hiện giao dịch vào lúc này.",
+      });
+      throw error;
+    }
+  };
+
+  const handleConvertESG = (account) => {
+    setConvertESGAccount(account);
+    setConvertESGModalOpen(true);
+  };
+
+  const handleConvertESGSubmit = async (payload) => {
+    try {
+      const result = await transactionsApi.convertESGPoints(payload);
+
+      setConvertESGModalOpen(false);
+      setConvertESGAccount(null);
+
+      await refreshAccounts();
+
+      notify({
+        type: "success",
+        title: "Quy đổi thành công",
+        message: `Đã quy đổi ${
+          payload.points
+        } điểm ESG thành ${Intl.NumberFormat("vi-VN").format(
+          result.amountReceived
+        )} VND. Số dư mới: ${Intl.NumberFormat("vi-VN").format(
+          result.newBalance
+        )} VND. Điểm ESG còn lại: ${result.remainingEsgPoints.toFixed(2)}.`,
+      });
+    } catch (error) {
+      console.error("Quy đổi điểm ESG thất bại", error);
+      notify({
+        type: "danger",
+        title: "Quy đổi thất bại",
+        message:
+          error.response?.data?.message ||
+          error.response?.data?.errors?.[0]?.msg ||
+          "Không thể quy đổi điểm ESG vào lúc này.",
       });
       throw error;
     }
@@ -246,6 +298,7 @@ const BankAccounts = () => {
                 onEditGoal={(acc, goal) => openGoalModal(acc, goal)}
                 onDeleteGoal={handleDeleteGoal}
                 onTransfer={openTransferModal}
+                onConvertESG={handleConvertESG}
               />
             ))}
           </div>
@@ -289,6 +342,12 @@ const BankAccounts = () => {
         onSubmit={handleTransfer}
         sourceAccount={transferAccount}
         recipients={recipients}
+      />
+      <ConvertESGModal
+        open={convertESGModalOpen}
+        onClose={() => setConvertESGModalOpen(false)}
+        onSubmit={handleConvertESGSubmit}
+        account={convertESGAccount}
       />
     </div>
   );

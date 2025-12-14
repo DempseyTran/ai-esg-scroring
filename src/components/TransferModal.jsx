@@ -34,7 +34,9 @@ const TransferModal = ({
     if (!sourceAccount) {
       return [];
     }
-    return recipients.filter((recipient) => recipient.id !== sourceAccount.id);
+    const filtered = recipients.filter((recipient) => recipient.id !== sourceAccount.id);
+    console.log("Available recipients:", filtered, "from total:", recipients.length); // Debug log
+    return filtered;
   }, [recipients, sourceAccount]);
 
   const handleChange = (event) => {
@@ -109,21 +111,32 @@ const TransferModal = ({
               value={form.targetAccountId}
               onChange={handleChange}
               required
-              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
+              disabled={availableRecipients.length === 0}
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100 disabled:bg-slate-100 disabled:cursor-not-allowed"
             >
-              <option value="">Chọn tài khoản nhận</option>
+              <option value="">
+                {availableRecipients.length === 0 
+                  ? "Không có tài khoản nhận khả dụng" 
+                  : "Chọn tài khoản nhận"}
+              </option>
               {availableRecipients.map((recipient) => (
                 <option key={recipient.id} value={recipient.id}>
-                  {recipient.ownerName} • {recipient.bankName} •{" "}
-                  {recipient.accountNumber}
+                  {recipient.ownerName || 'N/A'} • {recipient.bankName} •{" "}
+                  {recipient.accountNumber || 'N/A'}
                 </option>
               ))}
             </select>
             {availableRecipients.length === 0 && (
-              <p className="mt-2 text-xs text-amber-600">
-                Không có tài khoản nhận khả dụng. Hãy thêm người nhận trong hệ
-                thống.
-              </p>
+              <div className="mt-2 space-y-1">
+                <p className="text-xs text-amber-600">
+                  Không có tài khoản nhận khả dụng.
+                </p>
+                <p className="text-xs text-slate-500">
+                  Lý do: Hệ thống chỉ hiển thị tài khoản của người dùng khác. 
+                  Nếu bạn là người dùng duy nhất hoặc chưa có tài khoản của người khác, 
+                  vui lòng tạo thêm tài khoản hoặc đăng ký user mới.
+                </p>
+              </div>
             )}
           </div>
 

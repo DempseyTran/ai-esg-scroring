@@ -21,6 +21,16 @@ const transactionsApi = {
   async transfer(payload) {
     const response = await axiosClient.post('/transactions/transfer', payload);
     return response.data;
+  },
+
+  async scoreESG(payload) {
+    const response = await axiosClient.post('/transactions/esg_scoring', payload);
+    return response.data;
+  },
+
+  async convertESGPoints(payload) {
+    const response = await axiosClient.post('/transactions/convert-esg-points', payload);
+    return response.data;
   }
 };
 
