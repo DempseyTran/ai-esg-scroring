@@ -19,7 +19,12 @@ const transactionsApi = {
   },
 
   async transfer(payload) {
-    const response = await axiosClient.post('/transactions/transfer', payload);
+    // esgScore là optional, chỉ gửi nếu có
+    const { esgScore, ...restPayload } = payload;
+    const requestPayload = esgScore !== undefined
+      ? { ...restPayload, esgScore }
+      : restPayload;
+    const response = await axiosClient.post('/transactions/transfer', requestPayload);
     return response.data;
   },
 

@@ -17,7 +17,7 @@ const ConvertESGModal = ({
 
   // Tỷ lệ quy đổi: 1 điểm ESG = 1000 VND
   const exchangeRate = 1000;
-  const maxPoints = account?.esgPoint || 0;
+  const maxPoints = account?.esgPoint ? Number(account.esgPoint) : 0;
   const estimatedAmount = points ? Number(points) * exchangeRate : 0;
 
   const handleChange = (event) => {
@@ -34,8 +34,14 @@ const ConvertESGModal = ({
       return;
     }
 
-    if (Number(points) > maxPoints) {
+    const pointsToConvert = Number(points);
+    if (pointsToConvert > maxPoints) {
       alert(`Số điểm ESG không đủ. Bạn chỉ có ${maxPoints.toFixed(2)} điểm.`);
+      return;
+    }
+    
+    if (pointsToConvert <= 0) {
+      alert('Số điểm ESG phải lớn hơn 0');
       return;
     }
 
@@ -96,9 +102,14 @@ const ConvertESGModal = ({
             </div>
             <div className="mt-2 text-sm text-slate-500">
               Điểm ESG hiện có:{" "}
-              <span className="font-semibold text-brand-600">
+              <span className="font-semibold text-emerald-600">
                 {maxPoints.toFixed(2)} điểm
               </span>
+              {maxPoints > 0 && (
+                <span className="ml-2 text-xs text-slate-400">
+                  (≈ {currencyFormatter.format(maxPoints * exchangeRate)})
+                </span>
+              )}
             </div>
           </div>
 
@@ -129,14 +140,25 @@ const ConvertESGModal = ({
           </div>
 
           {points && Number(points) > 0 && (
-            <div className="rounded-lg border border-brand-200 bg-brand-50 p-4">
+            <div className={`rounded-lg border p-4 ${
+              Number(points) > maxPoints 
+                ? 'border-red-200 bg-red-50' 
+                : 'border-emerald-200 bg-emerald-50'
+            }`}>
               <div className="text-sm text-slate-600">Số tiền nhận được</div>
-              <div className="mt-1 text-2xl font-bold text-brand-600">
+              <div className={`mt-1 text-2xl font-bold ${
+                Number(points) > maxPoints ? 'text-red-600' : 'text-emerald-600'
+              }`}>
                 {currencyFormatter.format(estimatedAmount)}
               </div>
               {Number(points) > maxPoints && (
-                <p className="mt-2 text-xs text-red-600">
-                  Số điểm vượt quá số điểm hiện có
+                <p className="mt-2 text-xs text-red-600 font-medium">
+                  ⚠️ Số điểm vượt quá số điểm hiện có ({maxPoints.toFixed(2)} điểm)
+                </p>
+              )}
+              {Number(points) <= maxPoints && Number(points) > 0 && (
+                <p className="mt-2 text-xs text-emerald-600">
+                  ✓ Số điểm hợp lệ, có thể quy đổi
                 </p>
               )}
             </div>

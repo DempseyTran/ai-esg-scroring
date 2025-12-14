@@ -50,14 +50,17 @@ const BankAccountCard = ({
           >
             Chuyển tiền
           </button>
-          {account.esgPoint > 0 && onConvertESG && (
-            <button
-              onClick={() => onConvertESG(account)}
-              className="rounded-lg border border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-50"
-            >
-              Quy đổi điểm ESG
-            </button>
-          )}
+          {account.esgPoint !== undefined &&
+            account.esgPoint !== null &&
+            Number(account.esgPoint) > 0 &&
+            onConvertESG && (
+              <button
+                onClick={() => onConvertESG(account)}
+                className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-100"
+              >
+                Quy đổi điểm ESG
+              </button>
+            )}
           <button
             onClick={() => onCreateGoal(account)}
             className="rounded-lg border border-brand-200 px-4 py-2 text-sm font-medium text-brand-600 hover:bg-brand-50"

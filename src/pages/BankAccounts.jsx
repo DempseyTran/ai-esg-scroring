@@ -183,8 +183,21 @@ const BankAccounts = () => {
 
   const handleTransfer = async (payload) => {
     try {
-      // Gọi API ESG scoring thay vì transfer thông thường
-      const result = await transactionsApi.scoreESG(payload);
+      // Bước 1: Gọi API ESG scoring để chấm điểm (chỉ tính điểm, không ghi nhận giao dịch)
+      console.log("Step 1: Calling ESG scoring API...", payload);
+      const esgResult = await transactionsApi.scoreESG(payload);
+      console.log("ESG scoring result:", esgResult);
+
+      // Bước 2: Gọi API transfer để ghi nhận giao dịch và cộng điểm ESG
+      console.log("Step 2: Calling transfer API with ESG score...", {
+        ...payload,
+        esgScore: esgResult.esgScore,
+      });
+      const transferResult = await transactionsApi.transfer({
+        ...payload,
+        esgScore: esgResult.esgScore,
+      });
+      console.log("Transfer result:", transferResult);
 
       // Đóng modal trước để UX tốt hơn
       setTransferModalOpen(false);
@@ -205,22 +218,38 @@ const BankAccounts = () => {
         title: "Chuyển tiền thành công",
         message: `Đã chuyển ${Intl.NumberFormat("vi-VN").format(
           payload.amount
-        )} VND. ${result.message} (Hạng ${
-          result.esgGrade
-        }, Điểm ESG: ${result.esgScore.toFixed(
+        )} VND. ${esgResult.message} (Hạng ${
+          esgResult.esgGrade
+        }, Điểm ESG: ${esgResult.esgScore.toFixed(
           2
-        )}). Điểm ESG hiện tại: ${result.account.esgPoint.toFixed(2)}.`,
+        )}). Điểm ESG hiện tại: ${esgResult.account.esgPoint.toFixed(2)}.`,
       });
     } catch (error) {
       console.error("Chuyển tiền thất bại", error);
-      notify({
-        type: "danger",
-        title: "Chuyển tiền thất bại",
-        message:
-          error.response?.data?.message ||
-          error.response?.data?.errors?.[0]?.msg ||
-          "Không thể thực hiện giao dịch vào lúc này.",
+      console.error("Error details:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
       });
+
+      // Kiểm tra nếu là lỗi 401, yêu cầu đăng nhập lại
+      if (error.response?.status === 401) {
+        notify({
+          type: "danger",
+          title: "Phiên đăng nhập hết hạn",
+          message: "Vui lòng đăng nhập lại để tiếp tục.",
+        });
+        // Có thể redirect đến trang login ở đây
+      } else {
+        notify({
+          type: "danger",
+          title: "Chuyển tiền thất bại",
+          message:
+            error.response?.data?.message ||
+            error.response?.data?.errors?.[0]?.msg ||
+            "Không thể thực hiện giao dịch vào lúc này.",
+        });
+      }
       throw error;
     }
   };

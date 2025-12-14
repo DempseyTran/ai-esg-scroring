@@ -9,8 +9,11 @@ const axiosClient = axios.create({
 
 axiosClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('pfob_token');
+  console.log('Axios request interceptor - Token exists:', !!token, 'URL:', config.url);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  } else {
+    console.warn('No token found in localStorage for request:', config.url);
   }
   return config;
 });
