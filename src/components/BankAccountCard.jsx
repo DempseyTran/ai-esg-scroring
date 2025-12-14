@@ -30,14 +30,12 @@ const BankAccountCard = ({
               {currencyFormatter.format(account.balance || 0)}
             </span>
           </p>
-          {account.esgPoint !== undefined && account.esgPoint !== null && (
-            <p className="text-sm text-slate-500">
-              Điểm ESG:{" "}
-              <span className="font-medium text-emerald-600">
-                {Number(account.esgPoint).toFixed(2)} điểm
-              </span>
-            </p>
-          )}
+          <p className="text-sm text-slate-500">
+            Điểm ESG:{" "}
+            <span className="font-medium text-emerald-600">
+              {Number(account.esgPoint || 0).toFixed(2)} điểm
+            </span>
+          </p>
           <p className="text-xs text-slate-400">
             Lần đồng bộ gần nhất:{" "}
             {new Date(account.lastSync).toLocaleString("vi-VN")}
@@ -50,17 +48,14 @@ const BankAccountCard = ({
           >
             Chuyển tiền
           </button>
-          {account.esgPoint !== undefined &&
-            account.esgPoint !== null &&
-            Number(account.esgPoint) > 0 &&
-            onConvertESG && (
-              <button
-                onClick={() => onConvertESG(account)}
-                className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-100"
-              >
-                Quy đổi điểm ESG
-              </button>
-            )}
+          {onConvertESG && Number(account.esgPoint || 0) > 0 && (
+            <button
+              onClick={() => onConvertESG(account)}
+              className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-100"
+            >
+              Quy đổi điểm ESG
+            </button>
+          )}
           <button
             onClick={() => onCreateGoal(account)}
             className="rounded-lg border border-brand-200 px-4 py-2 text-sm font-medium text-brand-600 hover:bg-brand-50"

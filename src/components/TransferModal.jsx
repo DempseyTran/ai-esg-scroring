@@ -121,8 +121,9 @@ const TransferModal = ({
               </option>
               {availableRecipients.map((recipient) => (
                 <option key={recipient.id} value={recipient.id}>
-                  {recipient.ownerName || 'N/A'} • {recipient.bankName} •{" "}
-                  {recipient.accountNumber || 'N/A'}
+                  {recipient.ownerName || 'N/A'} • {recipient.bankName || 'N/A'} •{" "}
+                  {recipient.maskedAccount || recipient.accountNumber || 'N/A'} •{" "}
+                  {currencyFormatter.format(recipient.balance || 0)}
                 </option>
               ))}
             </select>
