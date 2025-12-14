@@ -6,12 +6,7 @@ const currencyFormatter = new Intl.NumberFormat("vi-VN", {
   maximumFractionDigits: 0,
 });
 
-const ConvertESGModal = ({
-  open,
-  onClose,
-  onSubmit,
-  account,
-}) => {
+const ConvertESGModal = ({ open, onClose, onSubmit, account }) => {
   const [points, setPoints] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -39,9 +34,9 @@ const ConvertESGModal = ({
       alert(`Số điểm ESG không đủ. Bạn chỉ có ${maxPoints.toFixed(2)} điểm.`);
       return;
     }
-    
+
     if (pointsToConvert <= 0) {
-      alert('Số điểm ESG phải lớn hơn 0');
+      alert("Số điểm ESG phải lớn hơn 0");
       return;
     }
 
@@ -135,25 +130,33 @@ const ConvertESGModal = ({
               </button>
             </div>
             <p className="mt-1 text-xs text-slate-500">
-              Tỷ lệ quy đổi: 1 điểm ESG = {currencyFormatter.format(exchangeRate)}
+              Tỷ lệ quy đổi: 1 điểm ESG ={" "}
+              {currencyFormatter.format(exchangeRate)}
             </p>
           </div>
 
           {points && Number(points) > 0 && (
-            <div className={`rounded-lg border p-4 ${
-              Number(points) > maxPoints 
-                ? 'border-red-200 bg-red-50' 
-                : 'border-emerald-200 bg-emerald-50'
-            }`}>
+            <div
+              className={`rounded-lg border p-4 ${
+                Number(points) > maxPoints
+                  ? "border-red-200 bg-red-50"
+                  : "border-emerald-200 bg-emerald-50"
+              }`}
+            >
               <div className="text-sm text-slate-600">Số tiền nhận được</div>
-              <div className={`mt-1 text-2xl font-bold ${
-                Number(points) > maxPoints ? 'text-red-600' : 'text-emerald-600'
-              }`}>
+              <div
+                className={`mt-1 text-2xl font-bold ${
+                  Number(points) > maxPoints
+                    ? "text-red-600"
+                    : "text-emerald-600"
+                }`}
+              >
                 {currencyFormatter.format(estimatedAmount)}
               </div>
               {Number(points) > maxPoints && (
                 <p className="mt-2 text-xs text-red-600 font-medium">
-                  ⚠️ Số điểm vượt quá số điểm hiện có ({maxPoints.toFixed(2)} điểm)
+                  ⚠️ Số điểm vượt quá số điểm hiện có ({maxPoints.toFixed(2)}{" "}
+                  điểm)
                 </p>
               )}
               {Number(points) <= maxPoints && Number(points) > 0 && (
@@ -192,4 +195,3 @@ const ConvertESGModal = ({
 };
 
 export default ConvertESGModal;
-
